@@ -101,6 +101,7 @@ void deplacer(void *arg) {
     int status = 1;
     int gauche;
     int droite;
+    int attempt = 0;
     DMessage *message;
 
     rt_printf("tmove : Debut de l'éxecution de periodique à 1s\n");
@@ -143,7 +144,13 @@ void deplacer(void *arg) {
 
             status = robot->set_motors(robot, gauche, droite);
 
-            if (status != STATUS_OK) {
+            if ((status != STATUS_OK)){
+                attempt++;
+            }else{
+                attempt = 0;
+            }
+
+            if ((status != STATUS_OK) && attempt >= 3) {
                 rt_mutex_acquire(&mutexEtat, TM_INFINITE);
                 etatCommRobot = status;
                 rt_mutex_release(&mutexEtat);
