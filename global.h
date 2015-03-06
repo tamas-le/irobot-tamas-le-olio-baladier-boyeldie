@@ -15,6 +15,7 @@ extern RT_TASK tServeur;
 extern RT_TASK tconnect;
 extern RT_TASK tmove;
 extern RT_TASK tenvoyer;
+extern RT_TASK tbatterie;
 
 /* @descripteurs des mutex */
 extern RT_MUTEX mutexEtat;
@@ -39,6 +40,7 @@ extern int PRIORITY_TSERVEUR;
 extern int PRIORITY_TCONNECT;
 extern int PRIORITY_TMOVE;
 extern int PRIORITY_TENVOYER;
+extern int PRIORITY_TBATTERIE;
 
 #endif	/* GLOBAL_H */
 

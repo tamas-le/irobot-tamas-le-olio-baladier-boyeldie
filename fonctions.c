@@ -97,6 +97,50 @@ void communiquer(void *arg) {
     }
 }
 
+void batterie(void *arg){
+    int battery_level;
+    int robot_status = 1;
+    DMessage *message;
+    DBattery *battery = d_new_battery();
+    int attempt = 0;
+
+    rt_printf("tbatterie : Debut de l'éxecution de periodique à 250ms\n");
+    rt_task_set_periodic(NULL, TM_NOW, 250000000);
+
+    while(attempt <= 10){
+        /* Attente de l'activation périodique */
+        rt_task_wait_period(NULL);
+        rt_printf("tbatterie : Activation périodique\n");
+
+        rt_mutex_acquire(&mutexEtat, TM_INFINITE);
+        robot_status = etatCommRobot;
+        rt_mutex_release(&mutexEtat);
+
+        if (robot_status == STATUS_OK) {
+            printf("OK : %d\n", attempt);
+            robot_status = d_robot_get_vbat(robot, &battery_level);
+            printf("batt lvl : %d | status : %d\n", battery_level, robot_status);
+            if (robot_status != STATUS_OK){
+                attempt++;
+            }
+            else{
+                attempt = 0;
+                message = d_new_message();
+                d_battery_set_level(battery, battery_level);
+                d_message_put_battery_level(message, battery);
+                rt_printf("tbatterie : Envoi message\n");
+                if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                    message->free(message);
+                }
+
+            }
+
+        }
+
+    }
+}
+
+
 void deplacer(void *arg) {
     int status = 1;
     int gauche;
