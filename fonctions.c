@@ -2,6 +2,10 @@
 
 int write_in_queue(RT_QUEUE *msgQueue, void * data, int size);
 
+
+
+
+
 void envoyer(void * arg) {
     DMessage *msg;
     int err;
@@ -17,6 +21,7 @@ void envoyer(void * arg) {
         }
     }
 }
+
 
 void connecter(void * arg) {
     int status;
@@ -36,6 +41,7 @@ void connecter(void * arg) {
 
         if (status == STATUS_OK) {
             status = robot->start_insecurely(robot);
+		//status = robot->start(robot);
             if (status == STATUS_OK){
                 rt_printf("tconnect : Robot démarrer\n");
             }
@@ -96,6 +102,21 @@ void communiquer(void *arg) {
         }
     }
 }
+
+void watchdog(void *arg){
+	int status;
+	
+	while(1){
+		rt_task_set_periodic(NULL, TM_NOW, 1000000000);
+
+
+
+	}
+
+
+
+}
+
 
 void batterie(void *arg){
     int battery_level;
