@@ -14,11 +14,12 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-        void connecter (void * arg);
-        void communiquer(void *arg);
-        void deplacer(void *arg);
-        void envoyer(void *arg);
-        void batterie(void *arg);
+  void connecter (void * arg);
+  void communiquer(void *arg);
+  void deplacer(void *arg);
+  void envoyer(void *arg);
+  void batterie(void *arg);
+  void watchdog(void *arg);
 #ifdef	__cplusplus
 }
 #endif
