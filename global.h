@@ -22,6 +22,7 @@ extern RT_TASK twatchdog;
 extern RT_MUTEX mutexEtat;
 extern RT_MUTEX mutexMove;
 extern RT_MUTEX mutexCom;
+extern RT_MUTEX mutexRobot;
 
 /* @descripteurs des sempahore */
 extern RT_SEM semConnecterRobot;

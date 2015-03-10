@@ -34,14 +34,18 @@ void connecter(void * arg) {
 
         rt_sem_p(&semConnecterRobot, TM_INFINITE);
         rt_printf("tconnect : Ouverture de la communication avec le robot\n");
+        rt_mutex_acquire(&mutexRobot, TM_INFINITE);
         status = robot->open_device(robot);
+        rt_mutex_release(&mutexRobot);
 
         rt_mutex_acquire(&mutexEtat, TM_INFINITE);
         etatCommRobot = status;
         rt_mutex_release(&mutexEtat);
 
         if (status == STATUS_OK) {
+            rt_mutex_acquire(&mutexRobot, TM_INFINITE);
             status = robot->start_insecurely(robot);
+            rt_mutex_release(&mutexRobot);
 		      //status = robot->start(robot);
             if (status == STATUS_OK){
                 rt_printf("tconnect : Robot démarrer\n");
@@ -106,33 +110,33 @@ void communiquer(void *arg) {
     }
 }
 
-void watchdog(void *arg){
-  int robot_status = 1;
+// void watchdog(void *arg){
+//   int robot_status = 1;
  
 	
-  rt_printf("twatchdog : Debut de l'éxecution de periodique à 1s\n");
-  rt_task_set_periodic(NULL, TM_NOW, 1000000000);
+//   rt_printf("twatchdog : Debut de l'éxecution de periodique à 1s\n");
+//   rt_task_set_periodic(NULL, TM_NOW, 1000000000);
 
-  while(1){
+//   while(1){
 	
-    rt_task_wait_period(NULL);
-    rt_printf("twatchdog : Activation périodique\n");
+//     rt_task_wait_period(NULL);
+//     rt_printf("twatchdog : Activation périodique\n");
     
-    rt_mutex_acquire(&mutexEtat, TM_INFINITE);
-    robot_status = etatCommRobot;
-    rt_mutex_release(&mutexEtat);
+//     rt_mutex_acquire(&mutexEtat, TM_INFINITE);
+//     robot_status = etatCommRobot;
+//     rt_mutex_release(&mutexEtat);
     
-    if (robot_status == STATUS_OK) {
-      // Si on est à 50ms près de de l'expiration
-      robot->d_robot_reload_wdt(robot);
+//     if (robot_status == STATUS_OK) {
+//       // Si on est à 50ms près de de l'expiration
+//       robot->d_robot_reload_wdt(robot);
 
-    }
+//     }
     
-  }
+//   }
 
 
 
-}
+// }
 
 
 void batterie(void *arg){
@@ -156,7 +160,9 @@ void batterie(void *arg){
 
         if (robot_status == STATUS_OK) {
             printf("OK : %d\n", attempt);
+            rt_mutex_acquire(&mutexRobot, TM_INFINITE);
             robot_status = d_robot_get_vbat(robot, &battery_level);
+            rt_mutex_release(&mutexRobot);
             printf("batt lvl : %d | status : %d\n", battery_level, robot_status);
             if (robot_status != STATUS_OK){
                 attempt++;
@@ -226,7 +232,9 @@ void deplacer(void *arg) {
             }
             rt_mutex_release(&mutexMove);
 
+            rt_mutex_acquire(&mutexRobot, TM_INFINITE);
             status = robot->set_motors(robot, gauche, droite);
+            rt_mutex_release(&mutexRobot);
 
             if ((status != STATUS_OK)){
                 attempt++;
