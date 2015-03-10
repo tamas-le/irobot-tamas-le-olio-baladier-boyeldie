@@ -31,6 +31,7 @@ void connecter(void * arg) {
 
     while (1) {
         rt_printf("tconnect : Attente du sémarphore semConnecterRobot\n");
+
         rt_sem_p(&semConnecterRobot, TM_INFINITE);
         rt_printf("tconnect : Ouverture de la communication avec le robot\n");
         status = robot->open_device(robot);
@@ -41,7 +42,7 @@ void connecter(void * arg) {
 
         if (status == STATUS_OK) {
             status = robot->start_insecurely(robot);
-		//status = robot->start(robot);
+		      //status = robot->start(robot);
             if (status == STATUS_OK){
                 rt_printf("tconnect : Robot démarrer\n");
             }
@@ -52,10 +53,11 @@ void connecter(void * arg) {
 
         rt_printf("tconnecter : Envoi message\n");
         message->print(message, 100);
-
+        rt_mutex_acquire(&mutexMove, TM_INFINITE);                    
         if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
             message->free(message);
         }
+        rt_mutex_release(&mutexMove);
     }
 }
 
@@ -83,7 +85,8 @@ void communiquer(void *arg) {
                             num_msg);
                     DAction *action = d_new_action();
                     action->from_message(action, msg);
-                    switch (action->get_order(action)) {
+                    switch
+                     (action->get_order(action)) {
                         case ACTION_CONNECT_ROBOT:
                             rt_printf("tserver : Action connecter robot\n");
                             rt_sem_v(&semConnecterRobot);
@@ -164,9 +167,11 @@ void batterie(void *arg){
                 d_battery_set_level(battery, battery_level);
                 d_message_put_battery_level(message, battery);
                 rt_printf("tbatterie : Envoi message\n");
+                rt_mutex_acquire(&mutexCom, TM_INFINITE);
                 if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
                     message->free(message);
                 }
+                rt_mutex_release(&mutexCom);
 
             }
 
@@ -238,9 +243,11 @@ void deplacer(void *arg) {
                 message->put_state(message, status);
 
                 rt_printf("tmove : Envoi message\n");
+                rt_mutex_acquire(&mutexCom, TM_INFINITE);
                 if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
                     message->free(message);
                 }
+                rt_mutex_release(&mutexCom);
             }
         }
     }

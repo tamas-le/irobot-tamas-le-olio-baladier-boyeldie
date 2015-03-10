@@ -16,6 +16,7 @@ RT_TASK twatchdog;
 
 RT_MUTEX mutexEtat;
 RT_MUTEX mutexMove;
+RT_MUTEX mutexCom;
 
 RT_SEM semConnecterRobot;
 
