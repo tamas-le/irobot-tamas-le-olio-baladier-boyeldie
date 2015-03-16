@@ -119,6 +119,7 @@ void initStruct(void) {
     robot = d_new_robot();
     move = d_new_movement();
     serveur = d_new_server();
+    camera_v=d_new_camera();
 }
 
 void startTasks() {
@@ -149,10 +150,10 @@ void startTasks() {
         exit(EXIT_FAILURE);
     }
 
-    /*if (err = rt_task_start(&tcamera, &w, NULL)) {
+    if (err = rt_task_start(&tcamera, &camera, NULL)) {
         rt_printf("Error task start: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
-    }*/
+    }
 }
 
 void deleteTasks() {
@@ -160,4 +161,5 @@ void deleteTasks() {
     rt_task_delete(&tconnect);
     rt_task_delete(&tmove);
     rt_task_delete(&twatchdog);
+    rt_task_delete(&tcamera);
 }

@@ -1,7 +1,7 @@
 #include "fonctions.h"
 
 int write_in_queue(RT_QUEUE *msgQueue, void * data, int size);
-DJpegimage *take_picture(DCamera * camera);
+DJpegimage *take_picture();
 
 
 
@@ -187,9 +187,9 @@ void batterie(void *arg){
 }
 
 
-DJpegimage *take_picture(DCamera * camera){
+DJpegimage *take_picture(){
    DImage * image = d_new_image();
-   camera->get_frame(camera,image);
+   camera_v->get_frame(camera_v,image);
    DJpegimage *jpeg=d_new_jpegimage();
    if(image!=NULL){
       jpeg->compress(jpeg,image);
@@ -203,16 +203,32 @@ DJpegimage *take_picture(DCamera * camera){
 
 
 void camera(void *arg){
-   int robot_status = 1;
+   int moniteur_status = 1;
  
 	
    rt_printf("tcamera : Debut de l'éxecution de periodique à 600ms\n");
    rt_task_set_periodic(NULL, TM_NOW, 600000000);
+   camera_v->open(camera_v);
 
    while(1){
+     	rt_task_wait_period(NULL);
+	rt_printf("tcamera : Activation périodique\n");
+	rt_mutex_acquire(&mutexEtat, TM_INFINITE);
+        moniteur_status = etatCommRobot;
+        rt_mutex_release(&mutexEtat);
 	
-     rt_task_wait_period(NULL);
-     rt_printf("tcamera : Activation périodique\n");
+	if(moniteur_status==STATUS_OK){
+		DJpegimage *jpg=take_picture();
+		DMessage* message=d_new_message();
+		message->put_jpeg_image(message,jpg);
+		rt_mutex_acquire(&mutexCom, TM_INFINITE);
+                if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                    message->free(message);
+                }
+                rt_mutex_release(&mutexCom);
+	}
+     
+     
    }
 
 }
