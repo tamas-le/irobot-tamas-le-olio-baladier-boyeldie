@@ -1,7 +1,7 @@
 #include "fonctions.h"
 
 int write_in_queue(RT_QUEUE *msgQueue, void * data, int size);
-
+DJpegimage *take_picture(DCamera * camera);
 
 
 
@@ -184,6 +184,37 @@ void batterie(void *arg){
         }
 
     }
+}
+
+
+DJpegimage *take_picture(DCamera * camera){
+   DImage * image = d_new_image();
+   camera->get_frame(camera,image);
+   DJpegimage *jpeg=d_new_jpegimage();
+   if(image!=NULL){
+      jpeg->compress(jpeg,image);
+      image->free(image);
+      return jpeg;
+   }
+
+
+   return NULL;
+}
+
+
+void camera(void *arg){
+   int robot_status = 1;
+ 
+	
+   rt_printf("tcamera : Debut de l'éxecution de periodique à 600ms\n");
+   rt_task_set_periodic(NULL, TM_NOW, 600000000);
+
+   while(1){
+	
+     rt_task_wait_period(NULL);
+     rt_printf("tcamera : Activation périodique\n");
+   }
+
 }
 
 

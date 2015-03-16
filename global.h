@@ -17,6 +17,7 @@ extern RT_TASK tmove;
 extern RT_TASK tenvoyer;
 extern RT_TASK tbatterie;
 extern RT_TASK twatchdog;
+extern RT_TASK tcamera;
 
 /* @descripteurs des mutex */
 extern RT_MUTEX mutexEtat;
@@ -33,6 +34,7 @@ extern RT_QUEUE queueMsgGUI;
 /* @variables partagées */
 extern int etatCommMoniteur;
 extern int etatCommRobot;
+extern int etatCamera;
 extern DServer *serveur;
 extern DRobot *robot;
 extern DMovement *move;
@@ -45,6 +47,7 @@ extern int PRIORITY_TMOVE;
 extern int PRIORITY_TENVOYER;
 extern int PRIORITY_TBATTERIE;
 extern int PRIORITY_TWATCHDOG;
+extern int PRIORITY_TCAMERA;
 
 #endif	/* GLOBAL_H */
 

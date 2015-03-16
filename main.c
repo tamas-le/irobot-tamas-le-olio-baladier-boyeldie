@@ -97,10 +97,17 @@ void initStruct(void) {
         rt_printf("Error task create: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
     }
-    if (err = rt_task_create(&twatchdog, NULL, 0, PRIORITY_TBATTERIE, 0)) {
+    if (err = rt_task_create(&twatchdog, NULL, 0, PRIORITY_TWATCHDOG, 0)) {
       rt_printf("Error task create: %s\n", strerror(-err));
       exit(EXIT_FAILURE);
     }
+
+    if (err = rt_task_create(&tcamera, NULL, 0, PRIORITY_TCAMERA, 0)) {
+      rt_printf("Error task create: %s\n", strerror(-err));
+      exit(EXIT_FAILURE);
+    }
+
+    
 
     /* Creation des files de messages */
     if (err = rt_queue_create(&queueMsgGUI, "toto", MSG_QUEUE_SIZE*sizeof(DMessage), MSG_QUEUE_SIZE, Q_FIFO)){
@@ -136,10 +143,16 @@ void startTasks() {
         rt_printf("Error task start: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
     }
-    if (err = rt_task_start(&twatchdog, &batterie, NULL)) {
+
+    if (err = rt_task_start(&twatchdog, &watchdog, NULL)) {
         rt_printf("Error task start: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
     }
+
+    /*if (err = rt_task_start(&tcamera, &w, NULL)) {
+        rt_printf("Error task start: %s\n", strerror(-err));
+        exit(EXIT_FAILURE);
+    }*/
 }
 
 void deleteTasks() {

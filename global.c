@@ -13,6 +13,7 @@ RT_TASK tmove;
 RT_TASK tenvoyer;
 RT_TASK tbatterie;
 RT_TASK twatchdog;
+RT_TASK tcamera;
 
 RT_MUTEX mutexEtat;
 RT_MUTEX mutexMove;
@@ -25,6 +26,7 @@ RT_QUEUE queueMsgGUI;
 
 int etatCommMoniteur = 1;
 int etatCommRobot = 1;
+int etatCamera=1;
 DRobot *robot;
 DMovement *move;
 DServer *serveur;
@@ -38,3 +40,4 @@ int PRIORITY_TMOVE = 10;
 int PRIORITY_TENVOYER = 25;
 int PRIORITY_TBATTERIE = 5;
 int PRIORITY_TWATCHDOG = 30;
+int PRIORITY_TCAMERA =15;
