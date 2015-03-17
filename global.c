@@ -19,6 +19,7 @@ RT_MUTEX mutexEtat;
 RT_MUTEX mutexMove;
 RT_MUTEX mutexCom;
 RT_MUTEX mutexRobot;
+RT_MUTEX mutexCamera;
 
 RT_SEM semConnecterRobot;
 

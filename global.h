@@ -24,6 +24,7 @@ extern RT_MUTEX mutexEtat;
 extern RT_MUTEX mutexMove;
 extern RT_MUTEX mutexCom;
 extern RT_MUTEX mutexRobot;
+extern RT_MUTEX mutexCamera;
 
 /* @descripteurs des sempahore */
 extern RT_SEM semConnecterRobot;

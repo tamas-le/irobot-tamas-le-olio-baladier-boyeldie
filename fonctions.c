@@ -95,6 +95,12 @@ void communiquer(void *arg) {
                             rt_printf("tserver : Action connecter robot\n");
                             rt_sem_v(&semConnecterRobot);
                             break;
+			case ACTION_FIND_ARENA:
+			    rt_printf("tserver : Action rechercher arène\n");
+			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              		    etatCamera=ACTION_FIND_ARENA;
+                  	    rt_mutex_release(&mutexCamera);
+			    break; 
                     }
                     break;
                 case MESSAGE_TYPE_MOVEMENT:
@@ -204,28 +210,43 @@ DJpegimage *take_picture(){
 
 void camera(void *arg){
    int moniteur_status = 1;
+   int etat,etat_default=ACTION_STOP_COMPUTE_POSITION;
+   DMessage* message;
+   DJpegimage *jpg;
  
 	
    rt_printf("tcamera : Debut de l'éxecution de periodique à 600ms\n");
+   
    rt_task_set_periodic(NULL, TM_NOW, 600000000);
+   //Cette ligne sert juste à se régaler avec la caméra.
+   //rt_task_set_periodic(NULL, TM_NOW, 40000000);
    camera_v->open(camera_v);
 
    while(1){
      	rt_task_wait_period(NULL);
 	rt_printf("tcamera : Activation périodique\n");
+
+
 	rt_mutex_acquire(&mutexEtat, TM_INFINITE);
         moniteur_status = etatCommRobot;
         rt_mutex_release(&mutexEtat);
 	
 	if(moniteur_status==STATUS_OK){
-		DJpegimage *jpg=take_picture();
-		DMessage* message=d_new_message();
+		 rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              	 etatCamera=etat;
+                 rt_mutex_release(&mutexCamera);
+
+
+		jpg=take_picture();
+		message=d_new_message();
 		message->put_jpeg_image(message,jpg);
 		rt_mutex_acquire(&mutexCom, TM_INFINITE);
-                if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
-                    message->free(message);
+             	if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                	message->free(message);
                 }
                 rt_mutex_release(&mutexCom);
+	
+
 	}
      
      
