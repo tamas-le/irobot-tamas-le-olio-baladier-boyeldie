@@ -20,6 +20,7 @@ RT_MUTEX mutexMove;
 RT_MUTEX mutexCom;
 RT_MUTEX mutexRobot;
 RT_MUTEX mutexCamera;
+RT_MUTEX mutexArene;
 
 RT_SEM semConnecterRobot;
 
@@ -27,12 +28,13 @@ RT_QUEUE queueMsgGUI;
 
 int etatCommMoniteur = 1;
 int etatCommRobot = 1;
-int etatCamera=1;
+int etatCamera=ACTION_STOP_COMPUTE_POSITION;
 
 DRobot *robot;
 DMovement *move;
 DServer *serveur;
 DCamera * camera_v;
+DArena * arene;
 
 
 int MSG_QUEUE_SIZE = 10;

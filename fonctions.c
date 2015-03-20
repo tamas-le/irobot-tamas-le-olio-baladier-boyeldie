@@ -100,7 +100,19 @@ void communiquer(void *arg) {
 			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
               		    etatCamera=ACTION_FIND_ARENA;
                   	    rt_mutex_release(&mutexCamera);
-			    break; 
+			    break;
+			case ACTION_ARENA_IS_FOUND:
+			    rt_printf("tserver : On a trouvé l'arène\n");
+			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              		    etatCamera=ACTION_ARENA_IS_FOUND;
+                  	    rt_mutex_release(&mutexCamera);
+			case ACTION_ARENA_FAILED:
+			    rt_printf("tserver : On a trouvé pas :'( l'arène\n");
+			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              		    etatCamera=ACTION_ARENA_FAILED;
+                  	    rt_mutex_release(&mutexCamera);
+			break;
+				 
                     }
                     break;
                 case MESSAGE_TYPE_MOVEMENT:
@@ -193,11 +205,18 @@ void batterie(void *arg){
 }
 
 
-DJpegimage *take_picture(){
+DJpegimage* take_picture(int isArena){
+   //is Arena vaut 1 si on veut dessiner l'arène 0 sinon.
    DImage * image = d_new_image();
    camera_v->get_frame(camera_v,image);
    DJpegimage *jpeg=d_new_jpegimage();
    if(image!=NULL){
+      if (isArena){
+		rt_mutex_acquire(&mutexArene, TM_INFINITE);
+		arene=image->compute_arena_position(image);
+		d_imageshop_draw_arena(image,arene);
+		rt_mutex_release(&mutexArene);
+	}
       jpeg->compress(jpeg,image);
       image->free(image);
       return jpeg;
@@ -211,6 +230,7 @@ DJpegimage *take_picture(){
 void camera(void *arg){
    int moniteur_status = 1;
    int etat,etat_default=ACTION_STOP_COMPUTE_POSITION;
+   int ancien_etat;
    DMessage* message;
    DJpegimage *jpg;
  
@@ -220,7 +240,9 @@ void camera(void *arg){
    rt_task_set_periodic(NULL, TM_NOW, 600000000);
    //Cette ligne sert juste à se régaler avec la caméra.
    //rt_task_set_periodic(NULL, TM_NOW, 40000000);
+
    camera_v->open(camera_v);
+   if (camera_v != NULL){
 
    while(1){
      	rt_task_wait_period(NULL);
@@ -233,24 +255,57 @@ void camera(void *arg){
 	
 	if(moniteur_status==STATUS_OK){
 		 rt_mutex_acquire(&mutexCamera, TM_INFINITE);
-              	 etatCamera=etat;
+              	 etat=etatCamera;
                  rt_mutex_release(&mutexCamera);
 
+		switch(etat){
+			case ACTION_FIND_ARENA:
+			rt_printf("Détection d'arène ambrosini");
+			rt_mutex_acquire(&mutexArene, TM_INFINITE);
+			arene=d_new_arena();
+			rt_mutex_release(&mutexArene);
+			jpg=take_picture(1);
+			message=d_new_message();
+			message->put_jpeg_image(message,jpg);
+			rt_mutex_acquire(&mutexCom, TM_INFINITE);
+             		
+			if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                		message->free(message);
+                	}
+                	rt_mutex_release(&mutexCom);
+			break;
 
-		jpg=take_picture();
-		message=d_new_message();
-		message->put_jpeg_image(message,jpg);
-		rt_mutex_acquire(&mutexCom, TM_INFINITE);
-             	if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
-                	message->free(message);
-                }
-                rt_mutex_release(&mutexCom);
-	
 
-	}
-     
+			case ACTION_STOP_COMPUTE_POSITION:
+			jpg=take_picture(0);
+			message=d_new_message();
+			message->put_jpeg_image(message,jpg);
+			rt_mutex_acquire(&mutexCom, TM_INFINITE);
+             		if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                		message->free(message);
+                	}
+                	rt_mutex_release(&mutexCom);
+			break;
+
+			case ACTION_ARENA_IS_FOUND:
+			rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              		etatCamera=etat_default;
+                  	rt_mutex_release(&mutexCamera);
+			break;
+
+			case ACTION_ARENA_FAILED:
+			rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              		etatCamera=etat_default;
+                  	rt_mutex_release(&mutexCamera);
+			arene->free(arene);
+			break;
+			}
+
+	}     
      
    }
+
+}
 
 }
 

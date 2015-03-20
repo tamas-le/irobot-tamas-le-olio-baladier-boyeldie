@@ -25,6 +25,7 @@ extern RT_MUTEX mutexMove;
 extern RT_MUTEX mutexCom;
 extern RT_MUTEX mutexRobot;
 extern RT_MUTEX mutexCamera;
+extern RT_MUTEX mutexArene;
 
 /* @descripteurs des sempahore */
 extern RT_SEM semConnecterRobot;
@@ -40,6 +41,8 @@ extern DServer *serveur;
 extern DRobot *robot;
 extern DMovement *move;
 extern DCamera * camera_v;
+extern DArena * arene;
+
 
 /* @constantes */
 extern int MSG_QUEUE_SIZE;
