@@ -21,6 +21,8 @@ RT_MUTEX mutexCom;
 RT_MUTEX mutexRobot;
 RT_MUTEX mutexCamera;
 RT_MUTEX mutexArene;
+RT_MUTEX mutexPosition;
+RT_MUTEX mutexMission;
 
 RT_SEM semConnecterRobot;
 
@@ -35,6 +37,8 @@ DMovement *move;
 DServer *serveur;
 DCamera * camera_v;
 DArena * arene;
+DPosition *position;
+DMission *mission;
 
 
 int MSG_QUEUE_SIZE = 10;

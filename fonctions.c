@@ -1,4 +1,5 @@
 #include "fonctions.h"
+#include <math.h>
 
 int write_in_queue(RT_QUEUE *msgQueue, void * data, int size);
 DJpegimage *take_picture();
@@ -73,7 +74,7 @@ void communiquer(void *arg) {
     rt_printf("tserver : Début de l'exécution de serveur\n");
     serveur->open(serveur, "8000");
     rt_printf("tserver : Connexion\n");
-
+#include <math.h>
     rt_mutex_acquire(&mutexEtat, TM_INFINITE);
     etatCommMoniteur = 0;
     rt_mutex_release(&mutexEtat);
@@ -135,6 +136,39 @@ void communiquer(void *arg) {
         }
     }
 }
+
+float determiner_angle(DPosition *M, DPosition *R){
+	double alpha;
+	double x;
+	double y;
+	y=(M->get_y(M))-(R->get_y(R));
+	x=(M->get_x(M))-(R->get_x(R));
+	alpha = atan2(y,x);
+	return alpha;
+}
+
+float rotationRobot(DPosition *M, DPosition *R){
+	float orientation_robot;	
+	orientation_robot = R->get_orientation(R);
+	return (orientation_robot + determiner_angle(M,R));
+}
+
+
+void start_mission(void *arg){
+	DPosition* positionMission = d_new_position();
+
+	rt_mutex_acquire(&mutexMission, TM_INFINITE);
+	mission = d_new_mission();
+		
+	rt_mutex_acquire(&mutexRobot, TM_INFINITE);
+	mission->get_position(mission,positionMission);
+	robot->turn(robot, rotationRobot(positionMission,position),1);
+	rt_mutex_release(&mutexRobot);	
+
+	rt_mutex_release(&mutexMission);
+}
+
+
 
 void watchdog(void *arg){
    int robot_status = 1;
@@ -242,7 +276,7 @@ void camera(void *arg){
    DMessage* message;
    DJpegimage *jpg;
    DImage *image;
-   DPosition *position;
+   
 
  
 	
@@ -317,15 +351,18 @@ void camera(void *arg){
 			camera_v->get_frame(camera_v, image);
 			rt_mutex_acquire(&mutexArene, TM_INFINITE);
 			if (arene!=NULL){
+				rt_mutex_acquire(&mutexPosition, TM_INFINITE);
 				position=image->compute_robot_position(image,arene);
+				rt_mutex_release(&mutexPosition);
 			}
 			rt_mutex_release(&mutexArene);
 			if (position!=NULL){
+				rt_mutex_acquire(&mutexPosition, TM_INFINITE);
 				d_imageshop_draw_position(image,position);
 				
 				message=d_new_message();
 				message->put_position(message,position);
-
+				rt_mutex_release(&mutexPosition);
 				rt_mutex_acquire(&mutexCom, TM_INFINITE);
              			if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
                 			message->free(message);

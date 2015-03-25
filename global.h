@@ -26,6 +26,8 @@ extern RT_MUTEX mutexCom;
 extern RT_MUTEX mutexRobot;
 extern RT_MUTEX mutexCamera;
 extern RT_MUTEX mutexArene;
+extern RT_MUTEX mutexPosition;
+extern RT_MUTEX mutexMission;
 
 /* @descripteurs des sempahore */
 extern RT_SEM semConnecterRobot;
@@ -42,6 +44,8 @@ extern DRobot *robot;
 extern DMovement *move;
 extern DCamera * camera_v;
 extern DArena * arene;
+extern DPosition *position;
+extern DMission *mission;
 
 
 /* @constantes */
