@@ -106,12 +106,20 @@ void communiquer(void *arg) {
 			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
               		    etatCamera=ACTION_ARENA_IS_FOUND;
                   	    rt_mutex_release(&mutexCamera);
+			break;
 			case ACTION_ARENA_FAILED:
 			    rt_printf("tserver : On a trouvé pas :'( l'arène\n");
 			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
               		    etatCamera=ACTION_ARENA_FAILED;
                   	    rt_mutex_release(&mutexCamera);
 			break;
+			case ACTION_COMPUTE_CONTINUOUSLY_POSITION:
+			    rt_printf("tserver : On calcul la position du robot\n");
+			    rt_mutex_acquire(&mutexCamera, TM_INFINITE);
+              		    etatCamera=ACTION_COMPUTE_CONTINUOUSLY_POSITION;
+                  	    rt_mutex_release(&mutexCamera);
+			break;
+			
 				 
                     }
                     break;
@@ -233,6 +241,9 @@ void camera(void *arg){
    int ancien_etat;
    DMessage* message;
    DJpegimage *jpg;
+   DImage *image;
+   DPosition *position;
+
  
 	
    rt_printf("tcamera : Debut de l'éxecution de periodique à 600ms\n");
@@ -299,6 +310,43 @@ void camera(void *arg){
                   	rt_mutex_release(&mutexCamera);
 			arene->free(arene);
 			break;
+
+			case ACTION_COMPUTE_CONTINUOUSLY_POSITION:
+			rt_printf("Détection de la position du robot mon pote");
+			image = d_new_image();
+			camera_v->get_frame(camera_v, image);
+			rt_mutex_acquire(&mutexArene, TM_INFINITE);
+			if (arene!=NULL){
+				position=image->compute_robot_position(image,arene);
+			}
+			rt_mutex_release(&mutexArene);
+			if (position!=NULL){
+				d_imageshop_draw_position(image,position);
+				
+				message=d_new_message();
+				message->put_position(message,position);
+
+				rt_mutex_acquire(&mutexCom, TM_INFINITE);
+             			if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                			message->free(message);
+                		}
+                		rt_mutex_release(&mutexCom);
+				message=d_new_message();
+				if (image != NULL){
+					jpg->compress(jpg,image);
+      					image->free(image);
+				}
+				
+				message->put_jpeg_image(message,jpg);
+
+				rt_mutex_acquire(&mutexCom, TM_INFINITE);
+             			if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                			message->free(message);
+                		}
+                		rt_mutex_release(&mutexCom);
+				
+			}
+			
 			}
 
 	}     
