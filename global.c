@@ -23,6 +23,7 @@ RT_MUTEX mutexCamera;
 RT_MUTEX mutexArene;
 RT_MUTEX mutexPosition;
 RT_MUTEX mutexMission;
+RT_MUTEX mutexAttempt;
 
 RT_SEM semConnecterRobot;
 
@@ -31,6 +32,8 @@ RT_QUEUE queueMsgGUI;
 int etatCommMoniteur = 1;
 int etatCommRobot = 1;
 int etatCamera=ACTION_STOP_COMPUTE_POSITION;
+
+int attempt = 0;
 
 DRobot *robot;
 DMovement *move;
