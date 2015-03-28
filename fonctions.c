@@ -2,8 +2,8 @@
 #include <math.h>
 
 int write_in_queue(RT_QUEUE *msgQueue, void * data, int size);
-DJpegimage *take_picture(int isArena);
-void check_connection(int status);
+DJpegimage *take_picture();
+
 
 
 
@@ -192,7 +192,6 @@ void watchdog(void *arg){
        rt_mutex_release(&mutexRobot);
 
      }
-	check_connection(robot_status);
     
    }
 
@@ -204,11 +203,12 @@ void batterie(void *arg){
     int robot_status = 1;
     DMessage *message;
     DBattery *battery = d_new_battery();
+    int attempt = 0;
 
     rt_printf("tbatterie : Debut de l'éxecution de periodique à 250ms\n");
     rt_task_set_periodic(NULL, TM_NOW, 250000000);
 
-    while(1){
+    while(attempt <= 10){
         /* Attente de l'activation périodique */
         rt_task_wait_period(NULL);
         rt_printf("tbatterie : Activation périodique\n");
@@ -223,19 +223,24 @@ void batterie(void *arg){
             robot_status = d_robot_get_vbat(robot, &battery_level);
             rt_mutex_release(&mutexRobot);
             printf("batt lvl : %d | status : %d\n", battery_level, robot_status);
-            attempt = 0;
-            message = d_new_message();
-            d_battery_set_level(battery, battery_level);
-             d_message_put_battery_level(message, battery);
-             rt_printf("tbatterie : Envoi message\n");
-             rt_mutex_acquire(&mutexCom, TM_INFINITE);
-             if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
-               message->free(message);
-             }
-             rt_mutex_release(&mutexCom);
+            if (robot_status != STATUS_OK){
+                attempt++;
+            }
+            else{
+                attempt = 0;
+                message = d_new_message();
+                d_battery_set_level(battery, battery_level);
+                d_message_put_battery_level(message, battery);
+                rt_printf("tbatterie : Envoi message\n");
+                rt_mutex_acquire(&mutexCom, TM_INFINITE);
+                if (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
+                    message->free(message);
+                }
+                rt_mutex_release(&mutexCom);
+
+            }
 
         }
-	check_connection(robot_status);
 
     }
 }
@@ -393,6 +398,7 @@ void deplacer(void *arg) {
     int status = 1;
     int gauche;
     int droite;
+    int attempt = 0;
     DMessage *message;
 
     rt_printf("tmove : Debut de l'éxecution de periodique à 1s\n");
@@ -443,8 +449,6 @@ void deplacer(void *arg) {
                 attempt = 0;
             }
 
-	check_connection(status);
-
             if ((status != STATUS_OK) && attempt >= 3) {
                 rt_mutex_acquire(&mutexEtat, TM_INFINITE);
                 etatCommRobot = status;
@@ -462,36 +466,6 @@ void deplacer(void *arg) {
             }
         }
     }
-}
-
-void check_connection(int status){
-	DMessage * message;
-	if (status == STATUS_OK){
-		rt_printf("PD : Le status est ok");
-		rt_mutex_acquire(&mutexEtat,TM_INFINITE);
-		etatCommRobot=status;
-		rt_mutex_release(&mutexEtat);
-		rt_mutex_acquire(&mutexAttempt,TM_INFINITE);
-		attempt=0;
-		rt_mutex_release(&mutexAttempt);
-
-	} else {
-		
-		rt_mutex_acquire(&mutexAttempt,TM_INFINITE);
-		attempt++;
-		rt_printf("PD : Le status est pas ok : %d \n",attempt);
-		rt_mutex_release(&mutexAttempt);
-		if(attempt >=50){
-
-			message=d_new_message();
-			message->put_state(message,status);
-		
-			while (write_in_queue(&queueMsgGUI, message, sizeof (DMessage)) < 0) {
-                	    message->free(message);
-                	}
-		}
-
-	}
 }
 
 int write_in_queue(RT_QUEUE *msgQueue, void * data, int size) {
