@@ -46,7 +46,6 @@ int main(int argc, char**argv) {
     startTasks();
     pause();
     deleteTasks();
-
     return 0;
 }
 
@@ -89,8 +88,18 @@ void initStruct(void) {
         exit(EXIT_FAILURE);
     }
 
+    if (err = rt_mutex_create(&mutex_robot_communication_error, NULL)) {
+        rt_printf("Error mutex create: %s\n", strerror(-err));
+        exit(EXIT_FAILURE);
+    }
+
+
     /* Creation du semaphore */
     if (err = rt_sem_create(&semConnecterRobot, NULL, 0, S_FIFO)) {
+        rt_printf("Error semaphore create: %s\n", strerror(-err));
+        exit(EXIT_FAILURE);
+    }
+    if (err = rt_sem_create(&semConnectedRobot, NULL, 0, S_FIFO)) {
         rt_printf("Error semaphore create: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
     }
@@ -116,11 +125,6 @@ void initStruct(void) {
         rt_printf("Error task create: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
     }
-    if (err = rt_task_create(&twatchdog, NULL, 0, PRIORITY_TWATCHDOG, 0)) {
-      rt_printf("Error task create: %s\n", strerror(-err));
-      exit(EXIT_FAILURE);
-    }
-
     if (err = rt_task_create(&tcamera, NULL, 0, PRIORITY_TCAMERA, 0)) {
       rt_printf("Error task create: %s\n", strerror(-err));
       exit(EXIT_FAILURE);
@@ -134,12 +138,14 @@ void initStruct(void) {
         exit(EXIT_FAILURE);
     }
 
+
     /* Creation des structures globales du projet */
     robot = d_new_robot();
     move = d_new_movement();
     serveur = d_new_server();
     camera_v=d_new_camera();
 }
+
 
 void startTasks() {
     int err;
@@ -164,21 +170,17 @@ void startTasks() {
         exit(EXIT_FAILURE);
     }
 
-    if (err = rt_task_start(&twatchdog, &watchdog, NULL)) {
-        rt_printf("Error task start: %s\n", strerror(-err));
-        exit(EXIT_FAILURE);
-    }
-
     if (err = rt_task_start(&tcamera, &camera, NULL)) {
         rt_printf("Error task start: %s\n", strerror(-err));
         exit(EXIT_FAILURE);
     }
 }
 
+
 void deleteTasks() {
     rt_task_delete(&tServeur);
     rt_task_delete(&tconnect);
     rt_task_delete(&tmove);
-    rt_task_delete(&twatchdog);
     rt_task_delete(&tcamera);
+    rt_task_delete(&tbatterie);
 }
