@@ -47,7 +47,7 @@ void connecter(void * arg) {
             rt_mutex_acquire(&mutexRobot, TM_INFINITE);
             status = robot->start_insecurely(robot);
             rt_mutex_release(&mutexRobot);
-		      //status = robot->start(robot);
+	    //status = robot->start(robot);
             if (status == STATUS_OK){
                 rt_printf("tconnect : Robot démarrer\n");
             }
@@ -68,22 +68,21 @@ void connecter(void * arg) {
 
 void communiquer(void *arg) {
     DMessage *msg = d_new_message();
-    int var1 = 1;
+    int byte = 1;
     int num_msg = 0;
 
     rt_printf("tserver : Début de l'exécution de serveur\n");
     serveur->open(serveur, "8000");
     rt_printf("tserver : Connexion\n");
-#include <math.h>
     rt_mutex_acquire(&mutexEtat, TM_INFINITE);
     etatCommMoniteur = 0;
     rt_mutex_release(&mutexEtat);
 
-    while (var1 > 0) {
+    while (byte > 0) {
         rt_printf("tserver : Attente d'un message\n");
-        var1 = serveur->receive(serveur, msg);
+        byte = serveur->receive(serveur, msg);
         num_msg++;
-        if (var1 > 0) {
+        if (byte > 0) {
             switch (msg->get_type(msg)) {
                 case MESSAGE_TYPE_ACTION:
                     rt_printf("tserver : Le message %d reçu est une action\n",
@@ -182,7 +181,7 @@ void watchdog(void *arg){
      rt_task_wait_period(NULL);
      rt_printf("twatchdog : Activation périodique\n");
     
-     rt_mutex_acquire(&mutexEtat, TM_INFINITE);
+    rt_mutex_acquire(&mutexEtat, TM_INFINITE);
      robot_status = etatCommRobot;
      rt_mutex_release(&mutexEtat);
     
@@ -386,7 +385,7 @@ void camera(void *arg){
 			
 			}
 
-	}     
+	}   
      
    }
 
